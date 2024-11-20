@@ -1,0 +1,184 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Factures à Prendre en Charge</title>
+   
+    <link rel="stylesheet" type="text/css" href="{% static 'myapp/css/deconnx.css' %}">
+
+    <!-- Inclure jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <!-- Inclure DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.1/css/jquery.dataTables.min.css">
+    
+    <!-- Inclure DataTables JS -->
+    <script src="https://cdn.datatables.net/1.13.1/js/jquery.dataTables.min.js"></script>
+    
+    <!-- Charger les tags statiques de Django -->
+    
+   
+    <!-- Ajout de vos propres styles CSS -->
+    <style>
+        
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f7f9;
+            margin: 0;
+            padding: 20px;
+        }
+
+        header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        header img {
+            width: 50px; /* Taille du logo */
+            margin-bottom: 10px;
+        }
+
+        header h2 {
+            color: #1b2573; /* Couleur bleue du titre */
+            font-size: 24px;
+            margin: 0;
+        }
+
+        .dataTables_filter {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .dataTables_filter label {
+            font-size: 16px;
+            font-weight: bold;
+            color: #1b2573;
+        }
+
+        .dataTables_filter input {
+            padding: 5px;
+            font-size: 14px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        table.dataTable {
+            width: 100%;
+            background-color: white;
+            border-collapse: collapse;
+            border-radius: 5px;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        table.dataTable thead {
+            background-color: #1b2573; /* Couleur bleue pour l'en-tête */
+            color: white;
+        }
+
+        table.dataTable th,
+        table.dataTable td {
+            padding: 12px 15px;
+            text-align: left;
+        }
+
+        table.dataTable th {
+            cursor: pointer;
+        }
+
+        table.dataTable tbody tr {
+            border-bottom: 1px solid #ddd;
+        }
+
+        table.dataTable tbody tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        table.dataTable tbody tr:hover {
+            background-color: #f5f5f5;
+        }
+
+        .action-button {
+            background-color: #f68b1f; /* Couleur orange */
+            color: white;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .action-button:hover {
+            background-color: #d9791a; /* Couleur plus foncée au survol */
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        
+        <form action="{% url 'logout' %}" method="post" class="logout-form">
+            {% csrf_token %}
+            <button type="submit" class="logout-button">Déconnexion</button>
+        </form>
+        
+        <img src="{% static 'myapp/images/logotopnet.png' %}"  alt="Logo">
+        <h2>Factures à Prendre en Charge</h2>
+
+    </header>
+
+    <!-- La table des factures -->
+    <table id="facturesTable" class="display">
+        <thead>
+            <tr>
+                <th>Tel ADSL Client</th>
+                <th>Identifiant</th>
+                <th>Abonnement</th>
+                <th>Num Facture</th>
+                <th>Date Création</th>
+                <th>Date Fin de Paiement</th>
+                <th>Montant Facture</th>
+                <th>Date Début Facture</th>
+                <th>Date Fin de Facture</th>
+                <th>Paiement</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for facture in factures %}
+            <tr>
+                <td>{{ facture.tel_adsl_client }}</td>
+                <td>{{ facture.identifiant }}</td>
+                <td>{{ facture.abonnement }}</td>
+                <td>{{ facture.numero_facture }}</td>
+                <td>{{ facture.date_creation }}</td>
+                <td>{{ facture.date_fin_paiement }}</td>
+                <td>{{ facture.montant_facture }}</td>
+                <td>{{ facture.date_debut_facture }}</td>
+                <td>{{ facture.date_fin_facture }}</td>
+                <td>
+                    <a href="{% url 'facture_detail' facture.id %}">
+                        <button class="action-button">Prendre en charge</button>
+                    </a>
+                </td>
+                
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Script pour initialiser DataTables -->
+    <script>
+        $(document).ready(function() {
+            $('#facturesTable').DataTable({
+                "paging": false,           // Désactive la pagination
+                "info": false,             // Désactive l'affichage "Showing X to Y of Z entries"
+                "lengthChange": false      // Désactive le sélecteur "Show X entries"
+            });
+        });
+    </script>
+</body>
+</html>

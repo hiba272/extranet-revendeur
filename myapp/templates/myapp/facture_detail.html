@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Détails de la Facture</title>
+    
+    <!-- Inclure jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <!-- Charger les tags statiques de Django -->
+    {% load static %}
+    <link rel="stylesheet" type="text/css" href="{% static 'myapp/css/deconnx.css' %}">
+    <!-- Ajout de vos propres styles CSS -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f7f9;
+            margin: 0;
+            padding: 20px;
+        }
+
+        header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        header img {
+            width: 50px; /* Taille du logo */
+            margin-bottom: 10px;
+        }
+
+        header h2 {
+            color: #1b2573; /* Couleur bleue du titre */
+            font-size: 24px;
+            margin: 0;
+        }
+
+        .detail-container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .detail-container h3 {
+            color: #1b2573;
+            font-size: 22px;
+            margin-bottom: 20px;
+        }
+
+        .detail-container p {
+            margin: 15px 0;
+            font-size: 18px;
+            line-height: 1.6;
+        }
+
+        .action-button {
+            background-color: #f68b1f; /* Couleur bleue pour les boutons */
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        .action-button:hover {
+            background-color: #f68b1f; /* Couleur plus foncée au survol */
+        }
+
+        .cancel-button {
+            background-color: #f68b1f; /* Couleur bleue pour annuler */
+            margin-left: 10px;
+        }
+
+        select {
+        width: 100%;
+        padding: 10px;
+        margin: 15px 0;
+        font-size: 16px;
+        border-radius: 5px;
+        border: 1px solid white; /* Bordure bleue */
+        box-sizing: border-box;
+        text-align: center;
+        background-color: #1b2573; /* Fond bleu */
+        color: white; /* Texte blanc */
+    }
+
+    input[type="text"] {
+        width: 100%;
+        padding: 10px;
+        margin: 15px 0;
+        font-size: 16px;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+        box-sizing: border-box;
+        text-align: center;
+    }
+
+
+        .button-group {
+            display: flex;
+            justify-content: center;
+            gap: 20px; /* Espace entre les boutons */
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <form action="{% url 'logout' %}" method="post" class="logout-form">
+            {% csrf_token %}
+            <button type="submit" class="logout-button">Déconnexion</button>
+        </form>
+        <img src="{% static 'myapp/images/logotopnet.png' %}"  alt="Logo">
+        <h2>Facture à prendre en charge</h2>
+    </header>
+
+    <div class="detail-container">
+        <h3>Facture N° {{ facture.numero_facture }}</h3>
+        <p><strong>Date de Création :</strong> {{ facture.date_creation }}</p>
+        <p><strong>Date Fin de Paiement :</strong> {{ facture.date_fin_paiement }}</p>
+        <p><strong>Montant Facture :</strong> {{ facture.montant_facture }}</p>
+        <p><strong>Date Début Facture :</strong> {{ facture.date_debut_facture }}</p>
+        <p><strong>Date Fin de Facture :</strong> {{ facture.date_fin_facture }}</p>
+        <p><strong>Client :</strong> {{ facture.tel_adsl_client }}</p>
+        <p><strong>Abonnement :</strong> {{ facture.abonnement }}</p>
+
+        <label for="mode_paiement"><strong>Mode de Paiement :</strong></label>
+        <select id="mode_paiement" name="mode_paiement">
+            <option value="">Sélectionner</option>
+            <option value="especes">Espèces</option>
+            <option value="cheque">Par chèque</option>
+        </select>
+
+        <div id="cheque_details" class="hidden">
+            <label for="proprietaire_cheque"><strong>Propriétaire du Chèque :</strong></label>
+            <input type="text" id="proprietaire_cheque" name="proprietaire_cheque">
+        </div>
+
+        <button class="action-button" id="confirmer_button" style="color: white; text-decoration: none;">
+            Confirmer la prise en charge
+        </button>
+    </div>
+
+    <script>
+   $(document).ready(function() {
+        // Gérer le changement du mode de paiement
+        $('#mode_paiement').change(function() {
+            var mode = $(this).val();  // Récupérer le mode de paiement sélectionné
+            var facture_id = "{{ facture.id }}";  // ID de la facture
+
+            // Modifier dynamiquement l'URL en fonction du mode de paiement
+            if (mode === 'especes') {
+                $('#confirmer_button').attr('onclick', "window.location.href='{% url 'generer_recu' facture.id %}'");
+                $('#cheque_details').addClass('hidden');  // Cacher le champ du propriétaire du chèque
+            } else if (mode === 'cheque') {
+                $('#cheque_details').removeClass('hidden');  // Afficher le champ du propriétaire du chèque
+                $('#confirmer_button').click(function() {
+                    // Récupérer la valeur du champ propriétaire du chèque avant de rediriger
+                    var proprietaire_cheque = $('#proprietaire_cheque').val();
+                    window.location.href = "{% url 'generer_recu' facture.id %}?mode=cheque&proprietaire_cheque=" + encodeURIComponent(proprietaire_cheque);
+                });
+            }
+        });
+
+        // Initialisation de l'affichage du champ lors du chargement de la page
+        var initialMode = $('#mode_paiement').val();
+        if (initialMode === 'cheque') {
+            $('#cheque_details').removeClass('hidden');  // Afficher le champ si le mode par chèque est déjà sélectionné
+        } else {
+            $('#cheque_details').addClass('hidden');  // Cacher le champ sinon
+        }
+    });
+    </script>
+</body>
+</html>
+
+
